@@ -1,7 +1,7 @@
 'use client'
 import React, { useState, useEffect } from 'react';
 import Container from '@/components/base/Container';
-import {randomBytes} from 'crypto'
+import { randomBytes } from 'crypto'
 
 export default function Home() {
   const [players, setPlayers] = useState(Array(5).fill(null));
@@ -10,30 +10,19 @@ export default function Home() {
   const [timer, setTimer] = useState(3);
   const [showRole, setShowRole] = useState(false);
 
-  const getRandomInt = (max: any, callback: any) => {
-    randomBytes(1, (err, buf) => {
-      if (err) throw err;
-      const randomInt = buf[0] % max;
-      callback(randomInt);
-    });
-  };
+  const rand = (a: any, b: any) => a + (b - a + 1) * crypto.getRandomValues(new Uint32Array(1))[0] / 2 ** 32 | 0;
 
-  const shuffleArray = async (array: any) => {
+  const shuffleArray = (array: any) => {
     for (let i = array.length - 1; i > 0; i--) {
-      await new Promise<void>((resolve) => {
-        getRandomInt(i + 1, (j: any) => {
-          [array[i], array[j]] = [array[j], array[i]]; // Swap elements
-          resolve();
-        });
-      });
+      const j = rand(0, i);
+      [array[i], array[j]] = [array[j], array[i]]; // Swap elements
     }
     return array;
   };
 
-  const assignRoles = async () => {
+  const assignRoles = () => {
     let roles = ['Resistance', 'Resistance', 'Resistance', 'Impostor', 'Impostor'];
-    const shuffledRoles = await shuffleArray([...roles]);
-    setPlayers(shuffledRoles);
+    setPlayers(shuffleArray([...roles])); // Use the shuffle function
     setGameStarted(true);
   };
 
