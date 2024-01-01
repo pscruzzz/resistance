@@ -10,7 +10,7 @@ export default function Home() {
   const [timer, setTimer] = useState(3);
   const [showRole, setShowRole] = useState(false);
 
-  const getRandomInt = (max, callback) => {
+  const getRandomInt = (max: any, callback: any) => {
     randomBytes(1, (err, buf) => {
       if (err) throw err;
       const randomInt = buf[0] % max;
@@ -20,7 +20,7 @@ export default function Home() {
 
   const shuffleArray = async (array: any) => {
     for (let i = array.length - 1; i > 0; i--) {
-      await new Promise((resolve) => {
+      await new Promise<void>((resolve) => {
         getRandomInt(i + 1, (j: any) => {
           [array[i], array[j]] = [array[j], array[i]]; // Swap elements
           resolve();
