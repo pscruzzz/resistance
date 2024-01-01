@@ -1,84 +1,54 @@
 'use client'
 
-import React, { useState, useEffect } from 'react';
-import Container from '@/components/base/Container';
+import React, { useState } from 'react';
 
-export default function Home() {
-  const [players, setPlayers] = useState(Array(5).fill(null));
-  const [currentPlayer, setCurrentPlayer] = useState(0);
-  const [gameStarted, setGameStarted] = useState(false);
-  const [timer, setTimer] = useState(3);
-  const [showRole, setShowRole] = useState(false);
+export default function SessionPage() {
+  const [sessionToken, setSessionToken] = useState('');
+  const [username, setUsername] = useState('');
 
-  const assignRolesBasedOnTime = () => {
-    const time = new Date().getTime();
-    let roles = ['Resistance', 'Resistance', 'Resistance', 'Impostor', 'Impostor'];
-
-    // Shuffle using time-based seed
-    for (let i = roles.length - 1; i > 0; i--) {
-      const timeBasedIndex = (time % (i + 1)) + (time % 1000);
-      const j = timeBasedIndex % roles.length; // Ensure j is within the array's bounds
-      [roles[i], roles[j]] = [roles[j], roles[i]];
-    }
-
-    setPlayers(roles);
-    setGameStarted(true);
+  const handleTokenChange = (event: any) => {
+    setSessionToken(event.target.value);
   };
 
-  const handleButtonClick = () => {
-    if (timer === 0 || !gameStarted) {
-      if (currentPlayer < 4) {
-        setCurrentPlayer(currentPlayer + 1);
-      } else {
-        // Reset for a new game
-        setCurrentPlayer(0);
-        setPlayers(Array(5).fill(null));
-        setGameStarted(false);
-      }
-    }
+  const handleUsernameChange = (event: any) => {
+    setUsername(event.target.value);
   };
 
-  const startTimer = () => {
-    setShowRole(true);
-    setTimer(3);
-    const countdown = setInterval(() => {
-      setTimer((prevTimer) => {
-        if (prevTimer === 1) {
-          clearInterval(countdown);
-          setShowRole(false);
-          return 0;
-        }
-        return prevTimer - 1;
-      });
-    }, 1000);
+  const enterSession = () => {
+    // Logic to handle entering a session with the given token and username
+    console.log('Entering session with token:', sessionToken, 'and username:', username);
   };
 
-  useEffect(() => {
-    if (gameStarted && currentPlayer < 5) {
-      startTimer();
-    }
-  }, [currentPlayer, gameStarted]);
+  const createSession = () => {
+    const newToken = Math.random().toString(36).substr(2, 9); // Simple random token generator
+    setSessionToken(newToken);
+    console.log('New session token:', newToken);
+  };
 
   return (
-    <Container>
-      <div className='flex flex-col items-center justify-center w-full relative gap-y-8 md:gap-x-12'>
-        <h1 className='text-gray-600 text-3xl font-bold'>
-          You will be:
-        </h1>
-        {showRole && players[currentPlayer] && (
-          <>
-            <h2 className='text-gray-600 text-2xl font-bold'>
-              {players[currentPlayer]}
-            </h2>
-            <p>Time remaining: {timer}</p>
-          </>
-        )}
-        {!gameStarted || timer === 0 ? (
-          <button onClick={gameStarted ? handleButtonClick : assignRolesBasedOnTime}>
-            {gameStarted ? (currentPlayer < 4 ? 'Next Player' : 'Restart Game') : 'Start Game'}
-          </button>
-        ) : null}
-      </div>
-    </Container>
-  )
+    <div style={{ padding: '20px', textAlign: 'center' }}>
+      <input
+        type="text"
+        value={username}
+        onChange={handleUsernameChange}
+        placeholder="Enter username"
+        style={{ padding: '10px', margin: '10px' }}
+      />
+      <br />
+      <input
+        type="text"
+        value={sessionToken}
+        onChange={handleTokenChange}
+        placeholder="Enter session token"
+        style={{ padding: '10px', margin: '10px' }}
+      />
+      <br />
+      <button onClick={enterSession} style={{ padding: '10px', margin: '5px' }}>
+        Enter Session
+      </button>
+      <button onClick={createSession} style={{ padding: '10px', margin: '5px' }}>
+        Create Session
+      </button>
+    </div>
+  );
 }
