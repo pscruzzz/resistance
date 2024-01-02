@@ -3,6 +3,7 @@ import { marshall,unmarshall } from '@aws-sdk/util-dynamodb';
 
 interface ISession {
   id: string;
+  playersAmount: number;
   currentMission: string;
   currentLeader: string;
   isFinished: boolean;
@@ -12,7 +13,7 @@ interface ISession {
 }
 
 export async function POST(request: Request) {
-  const response: { sessionId: string, user: string } = await request.json();
+  const response: { sessionId: string, user: string, playersAmount: number } = await request.json();
 
   if (response.sessionId === undefined) {
     return new Response('Bad Request', { status: 400 });
@@ -51,6 +52,7 @@ export async function POST(request: Request) {
 
   const newSession: ISession = {
     id: response.sessionId,
+    playersAmount: response.playersAmount,
     currentLeader: response.user,
     currentMission: "first",
     isFinished: false,
