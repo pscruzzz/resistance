@@ -3,22 +3,27 @@ import { marshall } from '@aws-sdk/util-dynamodb';
 
 interface ICreateSession{
   sessionId: string
-  playersAmount: number
+  sessionConfig: ISessionConfig
   user: string
 }
 
 export interface ISession {
   id: string;
-  playersAmount: number;
   currentMission: string;
   currentLeader: string;
   isFinished: boolean;
   roles: { [key: string]: string };
   missionsConfig: { [key: string]: number };
+  sessionConfig: ISessionConfig;
   missions: { [key: number]: string[] };
 }
 
-export async function createSession({playersAmount, sessionId, user}: ICreateSession): Promise<Response>{
+export interface ISessionConfig {
+  maxResistances: number;
+  maxImpostors: number;
+}
+
+export async function createSession({sessionConfig, sessionId, user}: ICreateSession): Promise<Response>{
 
   const client = new DynamoDBClient({
     region: process.env.AWS_REGION,
@@ -30,7 +35,7 @@ export async function createSession({playersAmount, sessionId, user}: ICreateSes
 
   const newSession: ISession = {
     id: sessionId,
-    playersAmount: playersAmount,
+    sessionConfig,
     currentLeader: user,
     currentMission: "first",
     isFinished: false,

@@ -1,19 +1,19 @@
 import { DynamoDBClient, UpdateItemCommand, AttributeValue } from '@aws-sdk/client-dynamodb';
 import { marshall } from '@aws-sdk/util-dynamodb';
-import { ISession } from './createSession';
+import { ISession, ISessionConfig } from './createSession';
 
 interface IVerifySession {
   sessionId: string;
   user: string;
 }
 
-function defineRole(roles: { [key: string]: string }): string {
+function defineRole(roles: { [key: string]: string }, sessionConfig: ISessionConfig): string {
   const impostorCount = Object.values(roles).filter(role => role === "impostor").length;
   const resistanceCount = Object.values(roles).filter(role => role === "resistance").length;
 
   // Maximum number of impostors and resistance
-  const maxImpostors = 2;
-  const maxResistance = 3;
+  const maxImpostors = sessionConfig.maxImpostors;
+  const maxResistances = sessionConfig.maxResistances;
 
   // Use current timestamp to generate a pseudo-random number
   const timestamp = new Date().getTime();
@@ -27,7 +27,7 @@ function defineRole(roles: { [key: string]: string }): string {
   // Validate and possibly switch the role according to the game rules
   if (chosenRole === "impostor" && impostorCount >= maxImpostors) {
     chosenRole = "resistance";
-  } else if (chosenRole === "resistance" && resistanceCount >= maxResistance) {
+  } else if (chosenRole === "resistance" && resistanceCount >= maxResistances) {
     chosenRole = "impostor";
   }
 
@@ -40,7 +40,9 @@ export async function addPlayerToSession({ sessionId, user }: IVerifySession, se
     return new Response('User already registered', { status: 200 });
   }
 
-  if(Object.keys(session.roles).length >= session.playersAmount){
+  const playersAmount = session.sessionConfig.maxImpostors + session.sessionConfig.maxResistances
+
+  if(Object.keys(session.roles).length >= playersAmount){
     return new Response('No new players allowed', { status: 400 });
   }
 
@@ -52,7 +54,7 @@ export async function addPlayerToSession({ sessionId, user }: IVerifySession, se
     }
   });
 
-  const role = defineRole(session.roles);
+  const role = defineRole(session.roles, session.sessionConfig);
 
   try {
     if (session) {

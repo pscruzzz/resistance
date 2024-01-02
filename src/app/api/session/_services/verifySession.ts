@@ -1,10 +1,10 @@
 import { DynamoDBClient, PutItemCommand, GetItemCommand } from '@aws-sdk/client-dynamodb';
 import { marshall, unmarshall } from '@aws-sdk/util-dynamodb';
-import { ISession } from './createSession';
+import { ISession, ISessionConfig } from './createSession';
 
 interface IVerifySession{
   sessionId: string
-  playersAmount: number
+  sessionConfig: ISessionConfig
   user: string
 }
 

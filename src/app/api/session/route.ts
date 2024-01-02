@@ -1,9 +1,9 @@
 import { verifySession } from './_services/verifySession';
-import { createSession } from './_services/createSession';
+import { ISessionConfig, createSession } from './_services/createSession';
 import { addPlayerToSession } from './_services/addPlayerToSession';
 
 export async function POST(request: Request) {
-  const requestBody: { sessionId: string, user: string, playersAmount: number } = await request.json();
+  const requestBody: { sessionId: string, user: string, sessionConfig: ISessionConfig } = await request.json();
 
   if (requestBody.sessionId === undefined) {
     return new Response('Bad Request', { status: 400 });
@@ -13,8 +13,11 @@ export async function POST(request: Request) {
     return new Response('Bad Request', { status: 400 });
   }
 
-  if (requestBody.playersAmount === undefined) {
-    requestBody.playersAmount = 5
+  if (requestBody.sessionConfig === undefined) {
+    requestBody.sessionConfig = {
+      maxImpostors: 2,
+      maxResistances: 3
+    }
   }
 
   console.log("verifySession")
