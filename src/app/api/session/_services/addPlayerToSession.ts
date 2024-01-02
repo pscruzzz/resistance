@@ -40,6 +40,10 @@ export async function addPlayerToSession({ sessionId, user }: IVerifySession, se
     return new Response('User already registered', { status: 200 });
   }
 
+  if(Object.keys(session.roles).length >= session.playersAmount){
+    return new Response('No new players allowed', { status: 400 });
+  }
+
   const client = new DynamoDBClient({
     region: process.env.AWS_REGION,
     credentials: {
