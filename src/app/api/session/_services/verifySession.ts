@@ -1,5 +1,5 @@
 import { DynamoDBClient, PutItemCommand, GetItemCommand } from '@aws-sdk/client-dynamodb';
-import { marshall,unmarshall } from '@aws-sdk/util-dynamodb';
+import { marshall, unmarshall } from '@aws-sdk/util-dynamodb';
 import { ISession } from './createSession';
 
 interface IVerifySession{
@@ -8,7 +8,7 @@ interface IVerifySession{
   user: string
 }
 
-export async function verifySession({sessionId, user}: IVerifySession){
+export async function verifySession({sessionId}: IVerifySession): Promise<ISession | undefined>{
   
   const client = new DynamoDBClient({
     region: process.env.AWS_REGION,
@@ -28,12 +28,12 @@ export async function verifySession({sessionId, user}: IVerifySession){
 
     if (Item) {
       const existingSession = unmarshall(Item) as ISession;
-      if (existingSession.roles[user]) {
-        return new Response('User already registered', { status: 200 });
-      }
+      return existingSession
+    } else{
+      return undefined;
     }
   } catch (e) {
     console.error("Error getting item into DynamoDB", e);
-    return new Response('Internal Server Error', { status: 500 });
+    return undefined;
   }
 }

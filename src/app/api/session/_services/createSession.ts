@@ -18,7 +18,7 @@ export interface ISession {
   missions: { [key: number]: string[] };
 }
 
-export async function createSession({playersAmount, sessionId, user}: ICreateSession){
+export async function createSession({playersAmount, sessionId, user}: ICreateSession): Promise<Response>{
 
   const client = new DynamoDBClient({
     region: process.env.AWS_REGION,
