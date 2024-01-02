@@ -1,76 +1,67 @@
-import { cookies } from 'next/headers'
-import type { NextApiRequest, NextApiResponse } from 'next';
-import jwt from 'jsonwebtoken';
-//import { serialize } from 'cookie';
- 
+import { DynamoDBClient, PutItemCommand } from '@aws-sdk/client-dynamodb';
+import { marshall } from '@aws-sdk/util-dynamodb';
+
+interface ISession {
+  id: string;
+  currentMission: string;
+  currentLeader: string;
+  isFinished: boolean;
+  roles: { [key: string]: string };
+  missionsConfig: { [key: string]: number };
+  missions: { [key: number]: string[] };
+}
+
 export async function POST(request: Request) {
-  
-  const response: {sessionId: string, user: string} = await request.json()
+  const response: { sessionId: string, user: string } = await request.json();
 
-  if(response.sessionId == undefined){
-    return new Response('Bad Request', {
-      status: 404
-    })
+  if (response.sessionId === undefined) {
+    return new Response('Bad Request', { status: 400 });
   }
 
-  if(response.user == undefined){
-    return new Response('Bad Request', {
-      status: 404
-    })
-  }
-  
-  return Response.json({ res })
-
-  if(process.env.JWT_SECRET_RENDER_AUTH === undefined || 
-    process.env.RENDER_PASSWORD === undefined){
-    return new Response('Internal Server Error', {
-      status: 500
-    })
+  if (response.user === undefined) {
+    return new Response('Bad Request', { status: 400 });
   }
 
-  const cookieStore = cookies()
-  const collabAuthCookie = cookieStore.get('collabAuthCookie')?.value
+  const newSession: ISession = {
+    id: response.sessionId,
+    currentLeader: response.user,
+    currentMission: "first",
+    isFinished: false,
+    roles: { [response.user]: "resistance" },
+    missionsConfig: {
+      1: 2,
+      2: 3,
+      3: 2,
+      4: 3,
+      5: 3
+    },
+    missions: {
+      1: [],
+      2: [],
+      3: [],
+      4: [],
+      5: []
+    },
+  };
 
-  if(collabAuthCookie !== undefined){
-    try {
-      jwt.verify(collabAuthCookie, process.env.JWT_SECRET_RENDER_AUTH);
-
-      return new Response('Hello, Next.js!', {
-        status: 200
-      })
-    } catch (error) {
-      //Do Nothing
+  const client = new DynamoDBClient({
+    region: process.env.AWS_REGION,
+    credentials: {
+      accessKeyId: process.env.AWS_ACCESS_KEY_ID ?? "",
+      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY ?? ""
     }
+  });
+
+  const putCommand = new PutItemCommand({
+    TableName: "resistance",
+    Item: marshall(newSession)
+  });
+
+  try {
+    await client.send(putCommand);
+    return new Response('Session created successfully', { status: 200 });
+  } catch (error) {
+    console.error("Error inserting item into DynamoDB", error);
+    return new Response('Internal Server Error', { status: 500 });
   }
-
-  const requestBody: {token: string} = await request.json()
-  const bodyToken = requestBody.token;
-
-  if(bodyToken == undefined){
-    return new Response('Forbidden', {
-      status: 403
-    })
-  }
-
-  if(bodyToken !== process.env.RENDER_PASSWORD){
-    return new Response('Unauthorized', {
-      status: 401
-    })
-  }
-
-  const jwtToken = jwt.sign({ bodyToken }, process.env.JWT_SECRET_RENDER_AUTH, { expiresIn: '1h' }); 
-
-  const cookieOptions = [
-    `collabAuthCookie=${jwtToken}`,
-    'HttpOnly',         // Makes the cookie inaccessible to client-side scripts
-    'Secure',           // Ensures the cookie is sent over HTTPS
-    'Path=/',           // Specifies the path for the cookie
-    'SameSite=Lax',     // Lax SameSite setting for CSRF protection
-    `Max-Age=${60 * 60}` // Cookie expiry set to match JWT expiry (1 hour in this case)
-  ].join('; ');
-
-  return new Response('Hello, Next.js!', {
-    status: 200,
-    headers: { 'Set-Cookie': cookieOptions },
-  })
 }
