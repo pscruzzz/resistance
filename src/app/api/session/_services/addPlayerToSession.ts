@@ -7,6 +7,34 @@ interface IVerifySession {
   user: string;
 }
 
+function defineRole(roles: { [key: string]: string }): string {
+  const impostorCount = Object.values(roles).filter(role => role === "impostor").length;
+  const resistanceCount = Object.values(roles).filter(role => role === "resistance").length;
+
+  // Maximum number of impostors and resistance
+  const maxImpostors = 2;
+  const maxResistance = 3;
+
+  // Use current timestamp to generate a pseudo-random number
+  const timestamp = new Date().getTime();
+  let pseudoRandom = timestamp % 100; // Get the last two digits for variability
+
+  // Normalize the pseudoRandom number to either 0 or 1
+  pseudoRandom = pseudoRandom % 2; 
+
+  let chosenRole = pseudoRandom === 0 ? "impostor" : "resistance";
+
+  // Validate and possibly switch the role according to the game rules
+  if (chosenRole === "impostor" && impostorCount >= maxImpostors) {
+    chosenRole = "resistance";
+  } else if (chosenRole === "resistance" && resistanceCount >= maxResistance) {
+    chosenRole = "impostor";
+  }
+
+  return chosenRole;
+}
+
+
 export async function addPlayerToSession({ sessionId, user }: IVerifySession, session: ISession): Promise<Response> {
   if (session.roles[user]) {
     return new Response('User already registered', { status: 200 });
@@ -20,6 +48,8 @@ export async function addPlayerToSession({ sessionId, user }: IVerifySession, se
     }
   });
 
+  const role = defineRole(session.roles);
+
   try {
     if (session) {
       const updateCommand = new UpdateItemCommand({
@@ -31,7 +61,7 @@ export async function addPlayerToSession({ sessionId, user }: IVerifySession, se
           "#user": user
         },
         ExpressionAttributeValues: {
-          ":role": { S: "resistance" } as AttributeValue
+          ":role": { S: role } as AttributeValue
         }
       });
 
