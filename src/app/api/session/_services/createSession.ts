@@ -9,13 +9,19 @@ interface ICreateSession{
 
 export interface ISession {
   id: string;
-  currentMission: string;
+  currentMission: number;
   currentLeader: string;
   isFinished: boolean;
   roles: { [key: string]: string };
   missionsConfig: { [key: string]: number };
   sessionConfig: ISessionConfig;
-  missions: { [key: number]: string[] };
+  missions: { [key: number]: IMission };
+}
+
+export interface IMission {
+  votes: string[],
+  status: 'Failed' | "Succeeded" | "Voting"
+  players: string[],
 }
 
 export interface ISessionConfig {
@@ -37,7 +43,7 @@ export async function createSession({sessionConfig, sessionId, user}: ICreateSes
     id: sessionId,
     sessionConfig,
     currentLeader: user,
-    currentMission: "first",
+    currentMission: 1,
     isFinished: false,
     roles: { [user]: "resistance" },
     missionsConfig: {
@@ -48,11 +54,31 @@ export async function createSession({sessionConfig, sessionId, user}: ICreateSes
       5: 3
     },
     missions: {
-      1: [],
-      2: [],
-      3: [],
-      4: [],
-      5: []
+      1: {
+        players: [],
+        votes: [],
+        status: "Voting"
+      },
+      2: {
+        players: [],
+        votes: [],
+        status: "Voting"
+      },
+      3: {
+        players: [],
+        votes: [],
+        status: "Voting"
+      },
+      4: {
+        players: [],
+        votes: [],
+        status: "Voting"
+      },
+      5: {
+        players: [],
+        votes: [],
+        status: "Voting"
+      },
     },
   };
 

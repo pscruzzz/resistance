@@ -4,8 +4,6 @@ import { ISession, ISessionConfig } from './createSession';
 
 interface IVerifySession{
   sessionId: string
-  sessionConfig: ISessionConfig
-  user: string
 }
 
 export async function verifySession({sessionId}: IVerifySession): Promise<ISession | undefined>{
