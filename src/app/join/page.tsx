@@ -1,29 +1,33 @@
 'use client'
 import React, { useState } from 'react';
-import { useRouter } from 'next/navigation'
+import { useRouter } from 'next/navigation';
 
 export default function SessionPage() {
+  const [sessionToken, setSessionToken] = useState('');
   const [username, setUsername] = useState('');
-  const router = useRouter(); // Use Next.js's useRouter hook for redirection
   const [loading, setLoading] = useState(false);
+  const router = useRouter();
+
+  const handleTokenChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setSessionToken(event.target.value);
+  };
 
   const handleUsernameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setUsername(event.target.value);
   };
 
-  const createSession = async () => {
-    setLoading(true)
-    const newToken = Math.random().toString(36).substr(2, 9); // Simple random token generator
-
+  const enterSession = async () => {
     try {
-      const response = await fetch('http://localhost:3000/api/session', {
+      setLoading(true)
+      // Assuming the API call is for entering an existing session, not creating a new one
+      const response = await fetch(`http://localhost:3000/api/session`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
           user: username,
-          sessionId: newToken,
+          sessionId: sessionToken,
           sessionConfig: {
             maxImpostors: 2,
             maxResistances: 3
@@ -33,15 +37,15 @@ export default function SessionPage() {
 
       if (response.ok) {
         // If the API call is successful, redirect to the session page
-        router.push(`/${newToken}/${username}`);
+        router.push(`/${sessionToken}/${username}`);
       } else {
-        // Handle errors with a notification or a message to the user
-        console.error('Failed to create session. Please try again.');
         setLoading(false)
+        // Handle errors with a notification or a message to the user
+        console.error('Failed to enter session. Please try again.');
       }
     } catch (error) {
       setLoading(false)
-      console.error('There was an error creating the session:', error);
+      console.error('There was an error entering the session:', error);
     }
   };
 
@@ -55,15 +59,23 @@ export default function SessionPage() {
         style={{ padding: '10px', margin: '10px' }}
       />
       <br />
-      <button onClick={createSession} style={{ padding: '10px', margin: '5px' }}>
-      {loading ? (
+      <input
+        type="text"
+        value={sessionToken}
+        onChange={handleTokenChange}
+        placeholder="Enter session token"
+        style={{ padding: '10px', margin: '10px' }}
+      />
+      <br />
+      <button disabled={loading} onClick={enterSession} style={{ padding: '10px', margin: '5px' }}>
+        {loading ? (
             <div className="flex items-center justify-center">
               <div className="spinner-border animate-spin inline-block w-4 h-4 border-2 rounded-full" role="status">
                 {/* <span className="visually-hidden">Loading...</span> */}
               </div>
             </div>
           ) : (
-            'Create Session'
+            'Enter Session'
           )}
       </button>
     </div>
