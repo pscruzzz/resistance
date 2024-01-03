@@ -19,7 +19,8 @@ export interface ISession {
 }
 
 export interface IMission {
-  votes: string[],
+  missionVotes: string[],
+  startMissionVotes: string[],
   status: 'Failed' | "Succeeded" | "Voting"
   players: string[],
 }
@@ -56,27 +57,32 @@ export async function createSession({sessionConfig, sessionId, user}: ICreateSes
     missions: {
       1: {
         players: [],
-        votes: [],
+        missionVotes: [],
+        startMissionVotes: [],
         status: "Voting"
       },
       2: {
         players: [],
-        votes: [],
+        missionVotes: [],
+        startMissionVotes: [],
         status: "Voting"
       },
       3: {
         players: [],
-        votes: [],
+        missionVotes: [],
+        startMissionVotes: [],
         status: "Voting"
       },
       4: {
         players: [],
-        votes: [],
+        missionVotes: [],
+        startMissionVotes: [],
         status: "Voting"
       },
       5: {
         players: [],
-        votes: [],
+        missionVotes: [],
+        startMissionVotes: [],
         status: "Voting"
       },
     },
