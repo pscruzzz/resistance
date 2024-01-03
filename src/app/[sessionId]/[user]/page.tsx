@@ -57,7 +57,7 @@ export default function SessionId({ params: { sessionId, user } }: { params: { s
       } catch (error) {
         console.error('Error fetching session data:', error);
       }
-    }, 5000); // Polling every 1 second
+    }, 1000); // Polling every 1 second
 
     return () => clearInterval(intervalId); // Cleanup interval on component unmount
   }, [sessionId, sessionData]); 
