@@ -1,13 +1,13 @@
 import { DynamoDBClient, UpdateItemCommand, AttributeValue } from '@aws-sdk/client-dynamodb';
 import { marshall } from '@aws-sdk/util-dynamodb';
 
-interface IAddStartMissionVote {
+interface IAddMissionVote {
   sessionId: string;
   missionId: string;
   vote: string; // 'fail' or 'success' or any other vote string
 }
 
-export async function addMissionVotes({ sessionId, missionId, vote }: IAddStartMissionVote): Promise<Response> {
+export async function addMissionVotes({ sessionId, missionId, vote }: IAddMissionVote): Promise<Response> {
   const client = new DynamoDBClient({
     region: process.env.AWS_REGION,
     credentials: {
@@ -38,9 +38,9 @@ export async function addMissionVotes({ sessionId, missionId, vote }: IAddStartM
     });
 
     await client.send(updateCommand);
-    return new Response('Vote added to start mission', { status: 200 });
+    return new Response('Vote added to mission', { status: 200 });
   } catch (e) {
-    console.error("Error adding vote to start mission", e);
-    return new Response('Error adding vote to start mission', { status: 500 });
+    console.error("Error adding vote to mission", e);
+    return new Response('Error adding vote to mission', { status: 500 });
   }
 }
