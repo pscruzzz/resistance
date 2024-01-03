@@ -1,87 +1,76 @@
+// pages/session/[sessionId].tsx
 'use client'
-
 import React, { useState, useEffect } from 'react';
+import axios from 'axios'; // axios for fetching data
 import Container from '@/components/base/Container';
+import PlayerList from '@/components/session/PlayerList'; // You'll create this component
+import LeaderAction from '@/components/session/LeaderAction'; // You'll create this component
+
+// Define the types for your state based on the JSON structure
+interface SessionState {
+  currentMission: number;
+  roles: { [key: string]: string };
+  missionsConfig: { [key: string]: number };
+  currentLeader: string[];
+  isFinished: boolean;
+  sessionConfig: {
+    maxResistances: number;
+    maxImpostors: number;
+  };
+  id: string;
+  missions: {
+    [key: string]: {
+      missionVotes: string[];
+      players: string[];
+      startMissionVotes: string[];
+      status: string;
+    };
+  };
+}
 
 export default function SessionId({ params: { sessionId, user } }: { params: { sessionId: string, user: string } }) {
-  const [players, setPlayers] = useState(Array(5).fill(null));
-  const [currentPlayer, setCurrentPlayer] = useState(0);
-  const [gameStarted, setGameStarted] = useState(false);
-  const [timer, setTimer] = useState(3);
-  const [showRole, setShowRole] = useState(false);
-
-  const assignRolesBasedOnTime = () => {
-    const time = new Date().getTime();
-    let roles = ['Resistance', 'Resistance', 'Resistance', 'Impostor', 'Impostor'];
-
-    // Shuffle using time-based seed
-    for (let i = roles.length - 1; i > 0; i--) {
-      const timeBasedIndex = (time % (i + 1)) + (time % 1000);
-      const j = timeBasedIndex % roles.length; // Ensure j is within the array's bounds
-      [roles[i], roles[j]] = [roles[j], roles[i]];
-    }
-
-    setPlayers(roles);
-    setGameStarted(true);
-  };
-
-  const handleButtonClick = () => {
-    if (timer === 0 || !gameStarted) {
-      if (currentPlayer < 4) {
-        setCurrentPlayer(currentPlayer + 1);
-      } else {
-        // Reset for a new game
-        setCurrentPlayer(0);
-        setPlayers(Array(5).fill(null));
-        setGameStarted(false);
-      }
-    }
-  };
-
-  const startTimer = () => {
-    setShowRole(true);
-    setTimer(3);
-    const countdown = setInterval(() => {
-      setTimer((prevTimer) => {
-        if (prevTimer === 1) {
-          clearInterval(countdown);
-          setShowRole(false);
-          return 0;
-        }
-        return prevTimer - 1;
-      });
-    }, 1000);
-  };
+  const [sessionData, setSessionData] = useState<SessionState | null>(null);
 
   useEffect(() => {
-    if (gameStarted && currentPlayer < 5) {
-      startTimer();
-    }
-  }, [currentPlayer, gameStarted]);
+    const fetchSessionData = async () => {
+      try {
+        const response = await axios.get(`http://localhost:3000/api/session/${sessionId}`);
+        setSessionData(response.data);
+      } catch (error) {
+        console.error('Error fetching session data:', error);
+      }
+    };
+
+    fetchSessionData();
+  }, [sessionId]);
+
+  if (!sessionData) {
+    return <div>Loading...</div>; // or some loading spinner
+  }
 
   return (
     <Container>
-      <div className='flex flex-col items-center justify-center w-full relative gap-y-8 md:gap-x-12'>
-        <h1 className='text-gray-600 text-3xl font-bold'>
-          {sessionId}
-        </h1>
-        <h1 className='text-gray-600 text-3xl font-bold'>
-          {user} will be:
-        </h1>
-        {showRole && players[currentPlayer] && (
-          <>
-            <h2 className='text-gray-600 text-2xl font-bold'>
-              {players[currentPlayer]}
-            </h2>
-            <p>Time remaining: {timer}</p>
-          </>
-        )}
-        {!gameStarted || timer === 0 ? (
-          <button onClick={gameStarted ? handleButtonClick : assignRolesBasedOnTime}>
-            {gameStarted ? (currentPlayer < 4 ? 'Next Player' : 'Restart Game') : 'Start Game'}
-          </button>
-        ) : null}
+      {/* Header showing session ID and current mission */}
+      <div className="p-4">
+        <h1 className="text-xl font-bold">Session: {sessionData.id}</h1>
+        <p>Current Mission: {sessionData.currentMission}</p>
+        <p>Status: {sessionData.missions[sessionData.currentMission.toString()].status}</p>
       </div>
+
+      {/* Player List */}
+      <PlayerList sessionData={sessionData} user={user} />
+
+      {/* Leader Action Area */}
+      {sessionData.currentLeader[0] === user && (
+        <LeaderAction sessionData={sessionData}  submitMissionSelection={()=>{}}/>
+      )}
+
+      {/* Other players see a waiting message */}
+      {sessionData.currentLeader[0] !== user && (
+        <div className="text-center p-4">
+          <p>Action: Wait For Leader</p>
+        </div>
+      )}
     </Container>
   )
 }
