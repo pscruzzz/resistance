@@ -18,36 +18,39 @@ const PlayerList: React.FC<PlayerListProps> = ({ sessionData, user }) => {
   const { roles, currentLeader } = sessionData;
 
   return (
-    <div className="flex flex-col items-center">
-      <h2 className="text-lg font-semibold">Players</h2>
-      <ul className="w-full">
+    <div className="flex flex-col items-center w-full md:w-1/2">
+      <h2 className="text-lg font-semibold pb-2">Players</h2>
+      <div className='flex flex-col w-full gap-y-2 rounded-sm p-4 outline outline-3 outline-offset-2 outline-gray-300'>
         {Object.keys(roles).map((playerName) => (
-          <li
-            key={playerName}
-            className={`flex justify-between items-center p-2 ${
-              currentLeader.includes(playerName) ? 'bg-blue-200' : ''
-            }`}
-          >
-            <span>{playerName}</span>
-            {/* Display role if current user is an impostor or if the player is the current user */}
-            {isImpostor(user, roles) || user === playerName ? (
-              <span className="rounded px-2 py-1 text-xs font-semibold text-white bg-green-500">
-                {roles[playerName]}
-              </span>
-            ) : (
-              <span className="rounded px-2 py-1 text-xs font-semibold text-white bg-gray-500">
-                ?
-              </span>
-            )}
-            {/* Display 'L' if player is the current leader */}
-            {currentLeader[0] === playerName && (
-              <span className="ml-2 rounded-full bg-yellow-400 px-2 text-xs font-bold">
-                L
-              </span>
-            )}
-          </li>
+          <div key={playerName} className='flex flex row w-full items-center justify-center'>
+            <div className="flex w-1/3 items-center justify-center">
+              {currentLeader[0] === playerName ?
+                <div className="flex w-1/2 item-center justify-center rounded-full bg-yellow-400 text-xs font-bold">
+                  <div className="flex py-2 px-2">
+                    Leader
+                  </div>
+                </div>
+                :
+                <div className="flex w-fit item-center justify-center rounded-full bg-yellow-400 p-2 text-xs font-bold">
+
+                </div>
+              }
+            </div>
+            <div className="flex w-1/3 item-center justify-center">{playerName}</div>
+            <div className="flex w-1/3 item-center justify-center">
+              {isImpostor(user, roles) || user === playerName ? (
+                <span className={`rounded px-2 py-1 text-xs font-semibold text-gray-800 ${roles[playerName]==="impostor" ? "bg-red-200" : "bg-emerald-200"}`}>
+                  {roles[playerName]}
+                </span>
+              ) : (
+                <span className="rounded px-2 py-1 text-xs font-semibold text-white bg-gray-500">
+                  ?
+                </span>
+              )}
+            </div>
+          </div>
         ))}
-      </ul>
+      </div>
     </div>
   );
 };

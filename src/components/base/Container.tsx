@@ -16,7 +16,7 @@ const Container: React.FC<Props> = ({ children }) => {
   };
 
   return (
-    <main style={stainedGradientStyle} className="relative flex min-h-screen flex-col items-center justify-start p-8">
+    <main style={stainedGradientStyle} className="relative flex min-h-screen flex-col items-center justify-start p-2">
       <div className="max-w-6xl w-full">
         <div className="w-full items-center justify-between font-mono text-sm lg:flex">
           {children}

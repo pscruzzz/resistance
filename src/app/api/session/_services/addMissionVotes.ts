@@ -58,13 +58,12 @@ export async function addMissionVotes({ sessionId, missionId, vote }: IAddMissio
       let nextMission = currentMission;
       let isFinished = false;
 
-      let updateExpression = `SET missions.#missionId.#missionStatus = :newStatus, #currentMission = :nextMission`;
+      let updateExpression = `SET missions.#missionId.#missionStatus = :newStatus, #currentMission = :nextMission, #isFinished = :isFinished`;
 
       if (currentMission + 1 < 5) {
         nextMission = currentMission + 1;
       } else {
         isFinished = true;
-        updateExpression += `, #isFinished = :isFinished`; // Add isFinished to update expression
       }
 
       const updateCommand = new UpdateItemCommand({
