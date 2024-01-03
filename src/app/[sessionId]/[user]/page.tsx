@@ -57,13 +57,65 @@ export default function SessionId({ params: { sessionId, user } }: { params: { s
       } catch (error) {
         console.error('Error fetching session data:', error);
       }
-    }, 1000); // Polling every 1 second
+    }, 2000); // Polling every 1 second
 
     return () => clearInterval(intervalId); // Cleanup interval on component unmount
   }, [sessionId, sessionData]); 
 
   if (!sessionData) {
     return <Container><div className='w-full flex item-center justify-center'>Loading...</div></Container>; // or some loading spinner
+  }
+
+  if(Object.values(sessionData.missions).filter(mission => mission.status == "succeeded").length >= 3){
+    return <Container>
+      <div className='w-full flex items-center justify-center'>
+        <div className='w-full md:w-2/3'>
+          {/* Header showing session ID and current mission */}
+          <div className="pb-4">
+            <div className='flex flex-row items-center justify-between pb-4'>
+              <h1 className="text-xl font-bold">Session: {sessionData.id}</h1>
+              <h1 className="text-xl font-bold">Player: {user}</h1>
+            </div>
+          </div>
+
+          <div className='flex flex-col w-full items-center justify-around gap-y-8'>
+            {/* Player List */}
+            <PlayerList sessionData={sessionData} user={user} />
+
+          
+            <MissionsTable missions={sessionData.missions} currentMission={sessionData.currentMission}/>
+
+            <h2>Resistance won! 🎉🎉🎉</h2>
+          </div>
+        </div>
+      </div>
+    </Container>
+  }
+
+  if(Object.values(sessionData.missions).filter(mission => mission.status == "failed").length >= 3){
+    return <Container>
+      <div className='w-full flex items-center justify-center'>
+        <div className='w-full md:w-2/3'>
+          {/* Header showing session ID and current mission */}
+          <div className="pb-4">
+            <div className='flex flex-row items-center justify-between pb-4'>
+              <h1 className="text-xl font-bold">Session: {sessionData.id}</h1>
+              <h1 className="text-xl font-bold">Player: {user}</h1>
+            </div>
+          </div>
+
+          <div className='flex flex-col w-full items-center justify-around gap-y-8'>
+            {/* Player List */}
+            <PlayerList sessionData={sessionData} user={user} />
+
+          
+            <MissionsTable missions={sessionData.missions} currentMission={sessionData.currentMission}/>
+
+            <h2>Impostors won! 🎉🎉🎉</h2>
+          </div>
+        </div>
+      </div>
+    </Container>
   }
 
   return (
@@ -101,6 +153,10 @@ export default function SessionId({ params: { sessionId, user } }: { params: { s
 
             {sessionData.missions[sessionData.currentMission.toString()].status === "voting-for-start" && (
               <VoteForMissionStart sessionId={sessionData.id} missionId={sessionData.currentMission} missionParticipants={sessionData.missions[sessionData.currentMission.toString()].players }/>
+            )}
+
+            {sessionData.missions[sessionData.currentMission.toString()].status === "voting-for-mission" && (
+              <VoteForMission user={user} sessionId={sessionData.id} missionId={sessionData.currentMission} missionParticipants={sessionData.missions[sessionData.currentMission.toString()].players }/>
             )}
 
             {sessionData.missions[sessionData.currentMission.toString()].status === "voting-for-mission" && (

@@ -54,13 +54,14 @@ export async function addMissionVotes({ sessionId, missionId, vote }: IAddMissio
       const hasFailed = session.missions[Number(missionId)].missionVotes.includes("fail")
       const missionStatus = hasFailed ? "failed" : "succeeded"
 
-      const currentMission = session.currentMission;
+      //TODO: Verify this
+      const currentMission = Number(missionId);
       let nextMission = currentMission;
       let isFinished = false;
 
       let updateExpression = `SET missions.#missionId.#missionStatus = :newStatus, #currentMission = :nextMission, #isFinished = :isFinished`;
 
-      if (currentMission + 1 < 5) {
+      if (currentMission < 5) {
         nextMission = currentMission + 1;
       } else {
         isFinished = true;
