@@ -43,8 +43,9 @@ const MissionsTable: React.FC<MissionsTableProps> = ({ missions, currentMission 
             </div>
             <div className="flex flex-col w-2/5 items-center justify-center text-center">
               {missions[missionNumber].players.join(', ')}
-              <div className="text-xs	text-gray-500	pt-1">{summarizeVotes(missions[missionNumber].missionVotes)}</div>
-            
+              {missions[missionNumber].missionVotes.length === missions[missionNumber].players.length && 
+              <div className="text-xs	text-gray-500	pt-1">{summarizeVotes(missions[missionNumber].missionVotes)}</div>}
+              
             </div>
             <div className="flex w-2/5 flex-col items-center justify-center">
               <span className={`rounded px-2 py-1 text-xs font-semibold text-gray-800 text-center ${missions[missionNumber].status === "failed" ? "bg-red-200" : "bg-emerald-200"}`}>
