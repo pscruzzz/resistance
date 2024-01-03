@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Container from '@/components/base/Container';
 
 export default function Home() {
-  const [players, setPlayers] = useState(Array(6).fill(null));
+  const [players, setPlayers] = useState(Array(5).fill(null));
   const [currentPlayer, setCurrentPlayer] = useState(0);
   const [gameStarted, setGameStarted] = useState(false);
   const [timer, setTimer] = useState(3);
@@ -12,7 +12,7 @@ export default function Home() {
 
   const assignRolesBasedOnTime = () => {
     const time = new Date().getTime();
-    let roles = ['Resistance', 'Resistance', 'Resistance', 'Impostor', 'Impostor', 'Resistance'];
+    let roles = ['Resistance', 'Resistance', 'Resistance', 'Impostor', 'Impostor'];
 
     // Shuffle using time-based seed
     for (let i = roles.length - 1; i > 0; i--) {
@@ -27,12 +27,12 @@ export default function Home() {
 
   const handleButtonClick = () => {
     if (timer === 0 || !gameStarted) {
-      if (currentPlayer < 5) {
+      if (currentPlayer < 4) {
         setCurrentPlayer(currentPlayer + 1);
       } else {
         // Reset for a new game
         setCurrentPlayer(0);
-        setPlayers(Array(6).fill(null));
+        setPlayers(Array(5).fill(null));
         setGameStarted(false);
       }
     }
@@ -54,7 +54,7 @@ export default function Home() {
   };
 
   useEffect(() => {
-    if (gameStarted && currentPlayer < 6) {
+    if (gameStarted && currentPlayer < 5) {
       startTimer();
     }
   }, [currentPlayer, gameStarted]);
@@ -75,7 +75,7 @@ export default function Home() {
         )}
         {!gameStarted || timer === 0 ? (
           <button onClick={gameStarted ? handleButtonClick : assignRolesBasedOnTime}>
-            {gameStarted ? (currentPlayer < 5 ? 'Next Player' : 'Restart Game') : 'Start Game'}
+            {gameStarted ? (currentPlayer < 4 ? 'Next Player' : 'Restart Game') : 'Start Game'}
           </button>
         ) : null}
       </div>
