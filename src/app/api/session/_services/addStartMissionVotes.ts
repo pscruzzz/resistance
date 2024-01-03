@@ -49,12 +49,62 @@ export async function addStartMissionVotes({ sessionId, missionId, vote }: IAddS
       return new Response('Vote added to start mission', { status: 200 });
     }
 
-    if(session.sessionConfig.maxImpostors
-      + session.sessionConfig.maxResistances 
+    console.log(JSON.stringify(session.missions[Number(missionId)]))
+
+    if (session.sessionConfig.maxImpostors
+      + session.sessionConfig.maxResistances
       <= session.missions[Number(missionId)].startMissionVotes.length) {
+
+      // Move the current leader to the end of the list
+      const newLeaderList = [...session.currentLeader.slice(1), session.currentLeader[0]];
+
+      const updateLeaderCommand = new UpdateItemCommand({
+        TableName: "resistance",
+        Key: marshall({ id: sessionId }),
+        UpdateExpression: "SET #currentLeader = :newLeaderList",
+        ExpressionAttributeNames: {
+          "#currentLeader": "currentLeader"
+        },
+        ExpressionAttributeValues: {
+          ":newLeaderList": { L: newLeaderList.map(leader => ({ S: leader })) }
+        }
+      });
+
+      await client.send(updateLeaderCommand);
+
+      const failVotes = session.missions[Number(missionId)].startMissionVotes.filter(vote => vote === "fail")
+      const succeedVotes = session.missions[Number(missionId)].startMissionVotes.filter(vote => vote === "succeed")
+
+      if (failVotes.length > succeedVotes.length) {
+        // Reset the mission
+        const resetMissionExpression = `SET missions.#missionId = :resetMission`;
+
+        const resetMissionCommand = new UpdateItemCommand({
+          TableName: "resistance",
+          Key: marshall({ id: sessionId }),
+          UpdateExpression: resetMissionExpression,
+          ExpressionAttributeNames: {
+            "#missionId": missionId
+          },
+          ExpressionAttributeValues: {
+            ":resetMission": {
+              M: {
+                "missionVotes": { L: [] },
+                "players": { L: [] },
+                "startMissionVotes": { L: [] },
+                "status": { S: "not-started" }
+              }
+            }
+          }
+        });
+
+        await client.send(resetMissionCommand);
+        return new Response('Vote added to start mission', { status: 200 });
+      }
+
       // Update the status to "voting-for-mission"
       const updateMissionStatusExpression = `SET missions.#missionId.#missionStatus = :newStatus`;
-    
+
       const updateStatusCommand = new UpdateItemCommand({
         TableName: "resistance",
         Key: marshall({ id: sessionId }),
@@ -67,7 +117,7 @@ export async function addStartMissionVotes({ sessionId, missionId, vote }: IAddS
           ":newStatus": { S: "voting-for-mission" }
         }
       });
-    
+
       await client.send(updateStatusCommand);
     }
 

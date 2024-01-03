@@ -61,13 +61,16 @@ export async function addPlayerToSession({ sessionId, user }: IVerifySession, se
       const updateCommand = new UpdateItemCommand({
         TableName: "resistance",
         Key: marshall({ id: sessionId }),
-        UpdateExpression: "SET #roles.#user = :role",
+        UpdateExpression: "SET #roles.#user = :role, #currentLeader = list_append(if_not_exists(#currentLeader, :emptyList), :newUser)",
         ExpressionAttributeNames: {
           "#roles": "roles",
-          "#user": user
+          "#user": user,
+          "#currentLeader": "currentLeader" // Placeholder for currentLeader attribute
         },
         ExpressionAttributeValues: {
-          ":role": { S: role } as AttributeValue
+          ":role": { S: role } as AttributeValue,
+          ":newUser": { L: [{ S: user }] }, // Append the new user to the currentLeader list
+          ":emptyList": { L: [] } // Create an empty list if currentLeader does not exist
         }
       });
 

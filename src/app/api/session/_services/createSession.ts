@@ -10,7 +10,7 @@ interface ICreateSession{
 export interface ISession {
   id: string;
   currentMission: number;
-  currentLeader: string;
+  currentLeader: string[];
   isFinished: boolean;
   roles: { [key: string]: string };
   missionsConfig: { [key: string]: number };
@@ -43,7 +43,7 @@ export async function createSession({sessionConfig, sessionId, user}: ICreateSes
   const newSession: ISession = {
     id: sessionId,
     sessionConfig,
-    currentLeader: user,
+    currentLeader: [user],
     currentMission: 1,
     isFinished: false,
     roles: { [user]: "resistance" },

@@ -1,5 +1,7 @@
 import { DynamoDBClient, UpdateItemCommand, AttributeValue } from '@aws-sdk/client-dynamodb';
 import { marshall } from '@aws-sdk/util-dynamodb';
+import { generateJitter } from '../../_utils/generateJitter';
+import { verifySession } from './verifySession';
 
 interface IAddMissionVote {
   sessionId: string;
@@ -38,6 +40,46 @@ export async function addMissionVotes({ sessionId, missionId, vote }: IAddMissio
     });
 
     await client.send(updateCommand);
+
+    await generateJitter();
+
+    const session = await verifySession({ sessionId })
+
+    if (!session) {
+      return new Response('Vote added to start mission', { status: 200 });
+    }
+
+    if (session.missions[Number(missionId)].missionVotes.length >=
+      session.missions[Number(missionId)].players.length) {
+      const hasFailed = session.missions[Number(missionId)].missionVotes.includes("fail")
+      const missionStatus = hasFailed ? "failed" : "succeeded"
+
+      const currentMission = session.currentMission;
+      const nextMission = currentMission + 1;
+
+      // Update the mission status and increment currentMission in one command
+      const updateExpression = `SET missions.#missionId.#missionStatus = :newStatus, #currentMission = :nextMission`;
+
+      const updateCommand = new UpdateItemCommand({
+        TableName: "resistance",
+        Key: marshall({ id: sessionId }),
+        UpdateExpression: updateExpression,
+        ExpressionAttributeNames: {
+          "#missionId": missionId,
+          "#missionStatus": "status", // Placeholder for the reserved keyword
+          "#currentMission": "currentMission"
+        },
+        ExpressionAttributeValues: {
+          ":newStatus": { S: missionStatus },
+          ":nextMission": { N: nextMission.toString() } // DynamoDB expects numbers as strings in AttributeValues
+        }
+      });
+
+      await client.send(updateCommand);
+
+      return new Response('Vote added to mission and mission updated', { status: 200 });
+    }
+
     return new Response('Vote added to mission', { status: 200 });
   } catch (e) {
     console.error("Error adding vote to mission", e);
