@@ -60,13 +60,13 @@ export default function SessionId({ params: { sessionId, user } }: { params: { s
     }, 2000); // Polling every 1 second
 
     return () => clearInterval(intervalId); // Cleanup interval on component unmount
-  }, [sessionId, sessionData]); 
+  }, [sessionId, sessionData]);
 
   if (!sessionData) {
     return <Container><div className='w-full flex item-center justify-center'>Loading...</div></Container>; // or some loading spinner
   }
 
-  if(Object.values(sessionData.missions).filter(mission => mission.status == "succeeded").length >= 3){
+  if (Object.values(sessionData.missions).filter(mission => mission.status == "succeeded").length >= 3) {
     return <Container>
       <div className='w-full flex items-center justify-center'>
         <div className='w-full md:w-2/3'>
@@ -82,17 +82,20 @@ export default function SessionId({ params: { sessionId, user } }: { params: { s
             {/* Player List */}
             <PlayerList sessionData={sessionData} user={user} />
 
-          
-            <MissionsTable missions={sessionData.missions} currentMission={sessionData.currentMission}/>
 
-            <h2>Resistance won! 🎉🎉🎉</h2>
+            <MissionsTable missions={sessionData.missions} currentMission={sessionData.currentMission} />
+
+            <div className='flex flex-col items-center justify-center'>
+              <h2>Resistance won! 🎉🎉🎉</h2>
+              <p>Time to eat candy! 🍬🍬🍬</p>
+            </div>
           </div>
         </div>
       </div>
     </Container>
   }
 
-  if(Object.values(sessionData.missions).filter(mission => mission.status == "failed").length >= 3){
+  if (Object.values(sessionData.missions).filter(mission => mission.status == "failed").length >= 3) {
     return <Container>
       <div className='w-full flex items-center justify-center'>
         <div className='w-full md:w-2/3'>
@@ -108,10 +111,13 @@ export default function SessionId({ params: { sessionId, user } }: { params: { s
             {/* Player List */}
             <PlayerList sessionData={sessionData} user={user} />
 
-          
-            <MissionsTable missions={sessionData.missions} currentMission={sessionData.currentMission}/>
 
-            <h2>Impostors won! 🎉🎉🎉</h2>
+            <MissionsTable missions={sessionData.missions} currentMission={sessionData.currentMission} />
+
+            <div className='flex flex-col items-center justify-center'>
+              <h2>Impostors won! 🎉🎉🎉</h2>
+              <p>Time to eat candy! 🍬🍬🍬</p>
+            </div>
           </div>
         </div>
       </div>
@@ -134,14 +140,14 @@ export default function SessionId({ params: { sessionId, user } }: { params: { s
             {/* Player List */}
             <PlayerList sessionData={sessionData} user={user} />
 
-          
-            <MissionsTable missions={sessionData.missions} currentMission={sessionData.currentMission}/>
+
+            <MissionsTable missions={sessionData.missions} currentMission={sessionData.currentMission} />
 
             {/* Leader Action Area */}
-            {sessionData.currentLeader[0] === user && 
-            sessionData.missions[sessionData.currentMission.toString()].status === "not-started" && (
-              <LeaderAction sessionData={sessionData} />
-            )}
+            {sessionData.currentLeader[0] === user &&
+              sessionData.missions[sessionData.currentMission.toString()].status === "not-started" && (
+                <LeaderAction sessionData={sessionData} />
+              )}
 
             {/* Other players see a waiting message */}
             {sessionData.currentLeader[0] !== user && sessionData.missions[sessionData.currentMission.toString()].status === "not-started" && (
@@ -152,11 +158,11 @@ export default function SessionId({ params: { sessionId, user } }: { params: { s
             )}
 
             {sessionData.missions[sessionData.currentMission.toString()].status === "voting-for-start" && (
-              <VoteForMissionStart sessionId={sessionData.id} missionId={sessionData.currentMission} missionParticipants={sessionData.missions[sessionData.currentMission.toString()].players }/>
+              <VoteForMissionStart sessionId={sessionData.id} missionId={sessionData.currentMission} missionParticipants={sessionData.missions[sessionData.currentMission.toString()].players} />
             )}
 
             {sessionData.missions[sessionData.currentMission.toString()].status === "voting-for-mission" && (
-              <VoteForMission user={user} sessionId={sessionData.id} missionId={sessionData.currentMission} missionParticipants={sessionData.missions[sessionData.currentMission.toString()].players }/>
+              <VoteForMission user={user} sessionId={sessionData.id} missionId={sessionData.currentMission} missionParticipants={sessionData.missions[sessionData.currentMission.toString()].players} />
             )}
           </div>
         </div>
