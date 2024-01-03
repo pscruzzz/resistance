@@ -43,8 +43,8 @@ export default function SessionPage() {
         style={{ padding: '10px', margin: '10px' }}
       />
       <br />
-      <button onClick={createSession} style={{ padding: '10px', margin: '5px' }}>
-        Create Session
+      <button onClick={enterSession} style={{ padding: '10px', margin: '5px' }}>
+        Enter Session
       </button>
     </div>
   );

@@ -55,10 +55,17 @@ export async function addMissionVotes({ sessionId, missionId, vote }: IAddMissio
       const missionStatus = hasFailed ? "failed" : "succeeded"
 
       const currentMission = session.currentMission;
-      const nextMission = currentMission + 1;
+      let nextMission = currentMission;
+      let isFinished = false;
 
-      // Update the mission status and increment currentMission in one command
-      const updateExpression = `SET missions.#missionId.#missionStatus = :newStatus, #currentMission = :nextMission`;
+      let updateExpression = `SET missions.#missionId.#missionStatus = :newStatus, #currentMission = :nextMission`;
+
+      if (currentMission + 1 < 5) {
+        nextMission = currentMission + 1;
+      } else {
+        isFinished = true;
+        updateExpression += `, #isFinished = :isFinished`; // Add isFinished to update expression
+      }
 
       const updateCommand = new UpdateItemCommand({
         TableName: "resistance",
@@ -67,11 +74,13 @@ export async function addMissionVotes({ sessionId, missionId, vote }: IAddMissio
         ExpressionAttributeNames: {
           "#missionId": missionId,
           "#missionStatus": "status", // Placeholder for the reserved keyword
-          "#currentMission": "currentMission"
+          "#currentMission": "currentMission",
+          "#isFinished": "isFinished" // Adding isFinished to ExpressionAttributeNames
         },
         ExpressionAttributeValues: {
           ":newStatus": { S: missionStatus },
-          ":nextMission": { N: nextMission.toString() } // DynamoDB expects numbers as strings in AttributeValues
+          ":nextMission": { N: nextMission.toString() }, // DynamoDB expects numbers as strings in AttributeValues
+          ":isFinished": { BOOL: isFinished } // Adding isFinished to ExpressionAttributeValues
         }
       });
 
