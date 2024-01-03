@@ -158,10 +158,6 @@ export default function SessionId({ params: { sessionId, user } }: { params: { s
             {sessionData.missions[sessionData.currentMission.toString()].status === "voting-for-mission" && (
               <VoteForMission user={user} sessionId={sessionData.id} missionId={sessionData.currentMission} missionParticipants={sessionData.missions[sessionData.currentMission.toString()].players }/>
             )}
-
-            {sessionData.missions[sessionData.currentMission.toString()].status === "voting-for-mission" && (
-              <VoteForMission user={user} sessionId={sessionData.id} missionId={sessionData.currentMission} missionParticipants={sessionData.missions[sessionData.currentMission.toString()].players }/>
-            )}
           </div>
         </div>
       </div>
