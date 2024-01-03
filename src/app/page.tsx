@@ -16,7 +16,7 @@ export default function SessionPage() {
     const newToken = Math.random().toString(36).substr(2, 9); // Simple random token generator
 
     try {
-      const response = await fetch('http://localhost:3000/api/session', {
+      const response = await fetch('/api/session', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

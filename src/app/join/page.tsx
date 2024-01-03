@@ -20,7 +20,7 @@ export default function SessionPage() {
     try {
       setLoading(true)
       // Assuming the API call is for entering an existing session, not creating a new one
-      const response = await fetch(`http://localhost:3000/api/session`, {
+      const response = await fetch(`/api/session`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

@@ -31,7 +31,7 @@ const LeaderAction: React.FC<LeaderActionProps> = ({ sessionData }) => {
     if (selectedPlayers.length === playersNeeded) {
       setIsLoading(true); // Start loading
       try {
-        const response = await fetch(`http://localhost:3000/api/session/${sessionData.id}/mission/${missionNumber}/players`, {
+        const response = await fetch(`/api/session/${sessionData.id}/mission/${missionNumber}/players`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
