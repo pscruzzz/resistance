@@ -1,7 +1,8 @@
 import { DynamoDBClient, UpdateItemCommand, AttributeValue } from '@aws-sdk/client-dynamodb';
 import { marshall } from '@aws-sdk/util-dynamodb';
 import { verifySession } from './verifySession';
-import { generateJitter } from '../../_utils/generateJitter';
+import Redis from 'ioredis';
+import { acquireLockWithExpiration, releaseLock } from '../../_utils/lockFunctions';
 
 interface IAddStartMissionVote {
   sessionId: string;
@@ -17,6 +18,19 @@ export async function addStartMissionVotes({ sessionId, missionId, vote }: IAddS
       secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY ?? ""
     }
   });
+
+  const redis = new Redis({
+    host: process.env.REDIS_SERVER_HOST, // Replace with your Redis server's host
+    port: 6379, // Default Redis port
+    // Additional options if required
+  });
+
+  const lockName = `${addStartMissionVotes}:${sessionId}:${missionId}`
+  const lockId = await acquireLockWithExpiration(redis, lockName)
+
+  if (lockId === undefined) {
+    return new Response('Cannot lock vote', { status: 500 });
+  }
 
   try {
     // Constructing the path to the specific mission's startMissionVotes array
@@ -41,15 +55,12 @@ export async function addStartMissionVotes({ sessionId, missionId, vote }: IAddS
 
     await client.send(updateCommand);
 
-    await generateJitter();
-
     const session = await verifySession({ sessionId })
 
     if (!session) {
+      await releaseLock(redis, lockName, lockId)
       return new Response('Vote added to start mission', { status: 200 });
     }
-
-    console.log(JSON.stringify(session.missions[Number(missionId)]))
 
     if (session.sessionConfig.maxImpostors
       + session.sessionConfig.maxResistances
@@ -99,6 +110,8 @@ export async function addStartMissionVotes({ sessionId, missionId, vote }: IAddS
         });
 
         await client.send(resetMissionCommand);
+
+        await releaseLock(redis, lockName, lockId)
         return new Response('Vote added to start mission', { status: 200 });
       }
 
@@ -121,9 +134,11 @@ export async function addStartMissionVotes({ sessionId, missionId, vote }: IAddS
       await client.send(updateStatusCommand);
     }
 
+    await releaseLock(redis, lockName, lockId)
     return new Response('Vote added to start mission', { status: 200 });
   } catch (e) {
     console.error("Error adding vote to start mission", e);
+    await releaseLock(redis, lockName, lockId)
     return new Response('Error adding vote to start mission', { status: 500 });
   }
 }
