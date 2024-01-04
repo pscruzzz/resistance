@@ -1,6 +1,5 @@
 import { DynamoDBClient, UpdateItemCommand, AttributeValue } from '@aws-sdk/client-dynamodb';
 import { marshall } from '@aws-sdk/util-dynamodb';
-import { generateJitter } from '../../_utils/generateJitter';
 import { verifySession } from './verifySession';
 import { acquireLockWithExpiration, releaseLock } from '../../_utils/lockFunctions';
 
