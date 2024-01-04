@@ -30,8 +30,6 @@ const VoteForMission: React.FC<VoteForMissionStartProps> = ({ sessionId, mission
         throw new Error('Network response was not ok');
       }
 
-      // Handle the response data or success side effect here
-      console.log('Vote submitted successfully:', vote);
       setVoteSubmitted(true); // Set vote as submitted
     } catch (error) {
       console.error('Failed to submit vote:', error);

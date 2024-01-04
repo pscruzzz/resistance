@@ -2,7 +2,6 @@ import { DynamoDBClient, UpdateItemCommand, AttributeValue } from '@aws-sdk/clie
 import { marshall } from '@aws-sdk/util-dynamodb';
 import { generateJitter } from '../../_utils/generateJitter';
 import { verifySession } from './verifySession';
-import Redis from 'ioredis';
 import { acquireLockWithExpiration, releaseLock } from '../../_utils/lockFunctions';
 
 interface IAddMissionVote {
@@ -20,14 +19,8 @@ export async function addMissionVotes({ sessionId, missionId, vote }: IAddMissio
     }
   });
 
-  const redis = new Redis({
-    host: process.env.REDIS_SERVER_HOST, // Replace with your Redis server's host
-    port: 6379, // Default Redis port
-    // Additional options if required
-  });
-
-  const lockName = `${addMissionVotes}:${sessionId}:${missionId}`
-  const lockId = await acquireLockWithExpiration(redis, lockName)
+  const lockName = `${sessionId}:${missionId}`
+  const lockId = await acquireLockWithExpiration(client, lockName)
   if (lockId === undefined) {
     return new Response('Cannot lock vote', { status: 500 });
   }
@@ -58,7 +51,7 @@ export async function addMissionVotes({ sessionId, missionId, vote }: IAddMissio
     const session = await verifySession({ sessionId })
 
     if (!session) {
-      await releaseLock(redis, lockName, lockId)
+      await releaseLock(client, lockName, lockId)
       return new Response('Vote added to start mission', { status: 200 });
     }
 
@@ -99,16 +92,16 @@ export async function addMissionVotes({ sessionId, missionId, vote }: IAddMissio
 
       await client.send(updateCommand);
 
-      await releaseLock(redis, lockName, lockId)
+      await releaseLock(client, lockName, lockId)
       return new Response('Vote added to mission and mission updated', { status: 200 });
     }
 
-    await releaseLock(redis, lockName, lockId)
+    await releaseLock(client, lockName, lockId)
     return new Response('Vote added to mission', { status: 200 });
   } catch (e) {
     console.error("Error adding vote to mission", e);
-    
-    await releaseLock(redis, lockName, lockId)
+
+    await releaseLock(client, lockName, lockId)
     return new Response('Error adding vote to mission', { status: 500 });
   }
 }
