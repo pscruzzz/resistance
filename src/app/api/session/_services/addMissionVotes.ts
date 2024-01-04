@@ -1,7 +1,7 @@
 import { DynamoDBClient, UpdateItemCommand, AttributeValue } from '@aws-sdk/client-dynamodb';
 import { marshall } from '@aws-sdk/util-dynamodb';
-import { generateJitter } from '../../_utils/generateJitter';
 import { verifySession } from './verifySession';
+import { acquireLockWithExpiration, releaseLock } from '../../_utils/lockFunctions';
 
 interface IAddMissionVote {
   sessionId: string;
@@ -17,6 +17,12 @@ export async function addMissionVotes({ sessionId, missionId, vote }: IAddMissio
       secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY ?? ""
     }
   });
+
+  const lockName = `${sessionId}:${missionId}`
+  const lockId = await acquireLockWithExpiration(client, lockName)
+  if (lockId === undefined) {
+    return new Response('Cannot lock vote', { status: 500 });
+  }
 
   try {
     // Constructing the path to the specific mission's startMissionVotes array
@@ -41,11 +47,10 @@ export async function addMissionVotes({ sessionId, missionId, vote }: IAddMissio
 
     await client.send(updateCommand);
 
-    await generateJitter();
-
     const session = await verifySession({ sessionId })
 
     if (!session) {
+      await releaseLock(client, lockName, lockId)
       return new Response('Vote added to start mission', { status: 200 });
     }
 
@@ -86,12 +91,16 @@ export async function addMissionVotes({ sessionId, missionId, vote }: IAddMissio
 
       await client.send(updateCommand);
 
+      await releaseLock(client, lockName, lockId)
       return new Response('Vote added to mission and mission updated', { status: 200 });
     }
 
+    await releaseLock(client, lockName, lockId)
     return new Response('Vote added to mission', { status: 200 });
   } catch (e) {
     console.error("Error adding vote to mission", e);
+
+    await releaseLock(client, lockName, lockId)
     return new Response('Error adding vote to mission', { status: 500 });
   }
 }

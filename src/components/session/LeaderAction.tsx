@@ -45,8 +45,6 @@ const LeaderAction: React.FC<LeaderActionProps> = ({ sessionData }) => {
           throw new Error('Network response was not ok');
         }
 
-        // Handle the response data or success side effect here
-        console.log('Players submitted successfully:', selectedPlayers);
         setIsDone(true)
       } catch (error) {
         console.error('Failed to submit players:', error);
